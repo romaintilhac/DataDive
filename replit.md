@@ -98,6 +98,9 @@ Preferred communication style: Simple, everyday language.
 ### File Processing
 - **openpyxl**: Excel file handling (via pandas)
 
+### Specialized Geochemical Libraries
+- **pyrolite**: Advanced geochemical analysis and normalization capabilities
+
 ## Recent Enhancements (December 2024)
 
 ### Enhanced Constants and References
@@ -125,6 +128,32 @@ Preferred communication style: Simple, everyday language.
 - Consistent color mapping for elements and lithologies
 - Better REE spider diagram formatting
 - Improved axis labels and scientific notation handling
+
+### Pyrolite Integration (January 2025)
+
+#### Enhanced Geochemical Analysis
+- Integrated pyrolite library for advanced geochemical analysis capabilities
+- Enhanced normalization using standard reference compositions (Chondrite_PON, PrimitiveMantle_PM, MORB_SM89, etc.)
+- Advanced REE spider plots with improved reference values
+- Enhanced TAS classification diagrams with proper field boundaries
+
+#### Mineral Chemistry Analysis
+- Olivine chemistry calculations (Forsterite content)
+- Plagioclase feldspar composition (An-Ab-Or)
+- Pyroxene chemistry analysis capabilities
+- Automated mineral parameter calculations
+
+#### Advanced Visualization Features
+- Pyrolite-enhanced REE spider diagrams with multiple reference options
+- Enhanced TAS diagrams with proper classification fields
+- Advanced normalization options with multiple reference compositions
+- Improved error handling and data validation
+
+#### Technical Enhancements
+- PyroliteAnalyzer class for seamless integration
+- Fallback to standard functions when pyrolite unavailable
+- Enhanced error handling and user feedback
+- Comprehensive reference composition database
 
 ## Deployment Strategy
 

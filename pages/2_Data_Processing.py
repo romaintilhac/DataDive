@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from utils.calculations import GeochemicalCalculator
 from utils.data_processing import DataProcessor
+from utils.pyrolite_integration import PyroliteAnalyzer
 
 st.set_page_config(page_title="Data Processing", page_icon="⚙️", layout="wide")
 
@@ -22,8 +23,19 @@ if 'calculator' not in st.session_state:
 if 'data_processor' not in st.session_state:
     st.session_state.data_processor = DataProcessor()
 
+if 'pyrolite_analyzer' not in st.session_state:
+    st.session_state.pyrolite_analyzer = PyroliteAnalyzer()
+
 calculator = st.session_state.calculator
 data_processor = st.session_state.data_processor
+pyrolite_analyzer = st.session_state.pyrolite_analyzer
+
+# Check pyrolite availability
+pyrolite_available = pyrolite_analyzer.check_availability()
+if pyrolite_available:
+    st.success("🔬 Pyrolite integration active - Enhanced normalization available!")
+else:
+    st.info("ℹ️ Pyrolite not available - Using standard normalization functions")
 
 # Current data
 df = st.session_state.main_data.copy()

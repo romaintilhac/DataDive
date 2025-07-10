@@ -4,6 +4,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from utils.visualizations import GeochemicalPlotter
+from utils.pyrolite_integration import PyroliteAnalyzer
 
 st.set_page_config(page_title="Visualizations", page_icon="📊", layout="wide")
 
@@ -24,11 +25,22 @@ else:
     df = st.session_state.main_data.copy()
     st.info("📊 Using raw data - consider processing data first for additional plot options")
 
-# Initialize plotter
+# Initialize plotter and pyrolite analyzer
 if 'plotter' not in st.session_state:
     st.session_state.plotter = GeochemicalPlotter()
 
+if 'pyrolite_analyzer' not in st.session_state:
+    st.session_state.pyrolite_analyzer = PyroliteAnalyzer()
+
 plotter = st.session_state.plotter
+pyrolite_analyzer = st.session_state.pyrolite_analyzer
+
+# Check pyrolite availability
+pyrolite_available = pyrolite_analyzer.check_availability()
+if pyrolite_available:
+    st.success("🔬 Pyrolite integration active - Enhanced geochemical analysis available!")
+else:
+    st.warning("⚠️ Pyrolite not available - Using standard analysis functions")
 
 # Data overview
 st.header("📋 Data Overview")
@@ -46,7 +58,7 @@ with col4:
         st.metric("Lithologies", df['Lithology'].nunique())
 
 # Visualization tabs
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["Scatter Plots", "Geochemical Plots", "Statistical Plots", "Classification", "Custom Plots"])
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Scatter Plots", "Geochemical Plots", "Statistical Plots", "Classification", "Pyrolite Enhanced", "Custom Plots"])
 
 with tab1:
     st.subheader("🔍 Scatter Plots and Correlations")
@@ -316,6 +328,165 @@ with tab4:
             st.info("Configure AFM diagram settings and click 'Create AFM Diagram'")
 
 with tab5:
+    st.subheader("🔬 Pyrolite Enhanced Analysis")
+    
+    if not pyrolite_available:
+        st.error("🚫 Pyrolite is not available. Please install pyrolite to use these advanced features.")
+        st.stop()
+    
+    # Enhanced REE Spider Plot
+    st.subheader("🕷️ Enhanced REE Spider Plot")
+    
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        st.write("**Enhanced REE Settings:**")
+        
+        # Reference selection
+        reference_options = ['Chondrite_PON', 'PrimitiveMantle_PM', 'MORB_SM89', 'OIB_SM89']
+        reference = st.selectbox("Reference for normalization", reference_options, key="pyro_ref")
+        
+        # Sample identification
+        sample_col = st.selectbox("Sample column", df.columns, 
+                                 index=df.columns.get_loc('Sample') if 'Sample' in df.columns else 0,
+                                 key="pyro_sample")
+        
+        # Color coding
+        color_by = st.selectbox("Color by", ['None'] + categorical_cols, key="pyro_color")
+        
+        if st.button("Create Enhanced REE Plot", type="primary"):
+            try:
+                color_col = None if color_by == 'None' else color_by
+                fig = pyrolite_analyzer.create_ree_spider_plot(df, reference, sample_col, color_col)
+                st.session_state.pyro_ree_plot = fig
+            except Exception as e:
+                st.error(f"Error creating enhanced REE plot: {str(e)}")
+    
+    with col2:
+        if 'pyro_ree_plot' in st.session_state:
+            st.plotly_chart(st.session_state.pyro_ree_plot, use_container_width=True)
+        else:
+            st.info("Configure enhanced REE settings and click 'Create Enhanced REE Plot'")
+    
+    # Enhanced TAS Diagram
+    st.subheader("🌋 Enhanced TAS Diagram")
+    
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        st.write("**Enhanced TAS Settings:**")
+        
+        if all(col in df.columns for col in ['SiO2', 'Na2O', 'K2O']):
+            st.success("✅ Required columns available: SiO2, Na2O, K2O")
+            
+            color_by = st.selectbox("Color by", ['None'] + categorical_cols, key="pyro_tas_color")
+            
+            if st.button("Create Enhanced TAS Diagram", type="primary"):
+                try:
+                    color_col = None if color_by == 'None' else color_by
+                    fig = pyrolite_analyzer.create_tas_diagram(df, color_col)
+                    st.session_state.pyro_tas_plot = fig
+                except Exception as e:
+                    st.error(f"Error creating enhanced TAS diagram: {str(e)}")
+        else:
+            st.error("❌ Required columns missing: SiO2, Na2O, K2O")
+    
+    with col2:
+        if 'pyro_tas_plot' in st.session_state:
+            st.plotly_chart(st.session_state.pyro_tas_plot, use_container_width=True)
+        else:
+            st.info("Configure enhanced TAS settings and click 'Create Enhanced TAS Diagram'")
+    
+    # Mineral Chemistry Analysis
+    st.subheader("💎 Mineral Chemistry Analysis")
+    
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        st.write("**Mineral Chemistry Settings:**")
+        
+        mineral_types = ['olivine', 'plagioclase', 'orthopyroxene', 'clinopyroxene']
+        selected_mineral = st.selectbox("Mineral type", mineral_types, key="pyro_mineral")
+        
+        if st.button("Calculate Mineral Chemistry", type="primary"):
+            try:
+                df_mineral = pyrolite_analyzer.calculate_mineral_chemistry(df, selected_mineral)
+                st.session_state.mineral_data = df_mineral
+                st.session_state.selected_mineral = selected_mineral
+                st.success(f"✅ {selected_mineral.title()} chemistry calculated!")
+            except Exception as e:
+                st.error(f"Error calculating mineral chemistry: {str(e)}")
+    
+    with col2:
+        if 'mineral_data' in st.session_state:
+            mineral_data = st.session_state.mineral_data
+            selected_mineral = st.session_state.selected_mineral
+            
+            # Display mineral-specific parameters
+            if selected_mineral == 'olivine' and 'Fo' in mineral_data.columns:
+                st.write("**Olivine Forsterite Content (Fo):**")
+                st.dataframe(mineral_data[['Sample', 'Fo']].head(10))
+            elif selected_mineral == 'plagioclase' and 'An' in mineral_data.columns:
+                st.write("**Plagioclase Composition:**")
+                plag_cols = ['Sample', 'An', 'Ab', 'Or']
+                available_plag_cols = [col for col in plag_cols if col in mineral_data.columns]
+                st.dataframe(mineral_data[available_plag_cols].head(10))
+            else:
+                st.info("No mineral chemistry data available for display")
+        else:
+            st.info("Calculate mineral chemistry to see results")
+    
+    # Advanced Normalization
+    st.subheader("📊 Advanced Normalization")
+    
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        st.write("**Advanced Normalization Settings:**")
+        
+        # Reference compositions
+        ref_options = ['Chondrite_PON', 'PrimitiveMantle_PM', 'MORB_SM89', 'OIB_SM89', 'UCC_RR', 'BCC_RR']
+        norm_reference = st.selectbox("Reference composition", ref_options, key="pyro_norm_ref")
+        
+        # Element selection
+        all_elements = ['La', 'Ce', 'Pr', 'Nd', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu',
+                       'Ba', 'Th', 'U', 'Nb', 'Ta', 'Sr', 'Zr', 'Hf', 'Y']
+        available_elements = [elem for elem in all_elements if elem in df.columns]
+        
+        selected_elements = st.multiselect(
+            "Select elements to normalize",
+            available_elements,
+            default=available_elements[:10] if len(available_elements) > 10 else available_elements,
+            key="pyro_norm_elements"
+        )
+        
+        if st.button("Apply Advanced Normalization", type="primary"):
+            try:
+                df_normalized = pyrolite_analyzer.normalize_to_reference(df, norm_reference, selected_elements)
+                st.session_state.normalized_data = df_normalized
+                st.session_state.norm_reference = norm_reference
+                st.success(f"✅ Normalization to {norm_reference} completed!")
+            except Exception as e:
+                st.error(f"Error applying normalization: {str(e)}")
+    
+    with col2:
+        if 'normalized_data' in st.session_state:
+            normalized_data = st.session_state.normalized_data
+            norm_reference = st.session_state.norm_reference
+            
+            # Show normalized columns
+            norm_cols = [col for col in normalized_data.columns if norm_reference.split('_')[-1] in col]
+            
+            if norm_cols:
+                st.write(f"**Normalized Data ({norm_reference}):**")
+                display_cols = ['Sample'] + norm_cols[:5]  # Show first 5 normalized columns
+                st.dataframe(normalized_data[display_cols].head(10))
+            else:
+                st.info("No normalized data available for display")
+        else:
+            st.info("Apply advanced normalization to see results")
+
+with tab6:
     st.subheader("🎨 Custom Plots")
     
     # Epsilon plots
