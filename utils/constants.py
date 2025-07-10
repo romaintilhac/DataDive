@@ -59,21 +59,41 @@ PRIMITIVE_MANTLE_VALUES = {
     'Zn': 55
 }
 
-# Isotope decay constants
-LAMBDA_147SM = 6.54e-12  # yr^-1
-LAMBDA_176LU = 1.867e-11  # yr^-1
-LAMBDA_87RB = 1.42e-11  # yr^-1
+# Decay constants (in yr⁻¹) - Updated with more accurate values
+LAMBDA_147SM = 6.539e-12  # Begemann et al. 2001
+LAMBDA_176LU = 1.865e-11  # Scherer et al. 2001
+LAMBDA_87RB = 1.42e-11   # yr^-1
 
-# Present-day isotope ratios
-CHUR_143ND_144ND = 0.512638
+# CHUR values (Bouvier et al. 2008)
+CHUR_147SM_144ND = 0.196
+CHUR_176LU_177HF = 0.034
+CHUR_143ND_144ND = 0.512630
 CHUR_176HF_177HF = 0.282785
-BULK_EARTH_87SR_86SR = 0.7047
 
 # Depleted mantle values
-DM_143ND_144ND = 0.51315
-DM_176HF_177HF = 0.28325
+DM_147SM_144ND = 0.214
+DM_143ND_144ND = 0.513215
+DM_176LU_177HF = 0.038  # Griffin et al. 2000
+DM_176HF_177HF = 0.283251  # Griffin et al. 2000
 
-# Atomic masses
+# DM Vervoort & Kemp 2025
+DM_176LU_177HF_VK25 = 0.04052
+DM_176HF_177HF_VK25 = 0.283251
+
+# Hf-Nd mantle array parameters
+HFND_ARRAY_A = 1.3432
+HFND_ARRAY_B = 2.5348
+
+# Natural abundances
+ABUNDANCE_147SM = 0.1499
+ABUNDANCE_144ND = 0.238
+ABUNDANCE_176LU = 0.0259
+ABUNDANCE_177HF = 0.186
+
+# Bulk Earth values
+BULK_EARTH_87SR_86SR = 0.7047
+
+# Atomic masses (g/mol)
 ATOMIC_MASSES = {
     'Lu': 174.9668,
     'Hf': 178.49,
@@ -93,18 +113,50 @@ ISOTOPE_ABUNDANCES = {
     'Sr_86': 0.0986
 }
 
-# Molecular weights for major elements
+# Column ordering for data presentation
+META_ORDER = "Sample Lithology Unit Zone Distance Lat(N) Long(E) dup# run#".split()
+ME_ORDER = "SiO2 TiO2 Al2O3 Cr2O3 Fe2O3 Fe2O3T FeO FeOT NiO MnO MgO CaO Na2O K2O P2O5 LOI Total".split()
+ME_RATIO_ORDER = "Mg#".split()
+TE_ORDER = (
+    "La Ce Pr Nd Sm Eu Gd Tb Dy Ho Er Tm Yb Lu "
+    "F Cl H Ag As Au B Ba Be Bi Br C Ca Cd Co Cr Cs Cu Ga Ge Hf In "
+    "Ir K Li Mn Mo N Na Nb Ni Os P Pb Pd Pt Rb Re Rh Ru Sb Sc Se Sn Sr Ta Te Th Ti Tl U V W Y Zn Zr"
+).split()
+ISO_ORDER = (
+    "87Rb/86Sr 87Sr/86Sr 87Sr/86Sr(i) "
+    "147Sm/144Nd 143Nd/144Nd 143Nd/144Nd(i) εNd εNd(i) "
+    "176Lu/177Hf 176Hf/177Hf 176Hf/177Hf(i) εHf εHf(i) ΔεHf ΔεHf(i) "
+    "208Pb/204Pb 207Pb/204Pb 206Pb/204Pb"
+).split()
+
+# Plot labels with LaTeX formatting
+MANUAL_LABELS = {
+    'Distance': "Distance from Moho [m]",
+    "εNd": r"$\mathrm{\varepsilon}_{\mathrm{Nd}}$",
+    "εHf": r"$\mathrm{\varepsilon}_{\mathrm{Hf}}$",
+    "εNd(i)": r"$\mathrm{\varepsilon}_{\mathrm{Nd}}(i)$",
+    "εHf(i)": r"$\mathrm{\varepsilon}_{\mathrm{Hf}}(i)$",
+    "ΔεHf": r"$\Delta \mathrm{\varepsilon}_{\mathrm{Hf}}$",
+    "ΔεHf(i)": r"$\Delta \mathrm{\varepsilon}_{\mathrm{Hf}}(i)$",
+}
+
+# Molecular weights for major elements (g/mol)
 MOLECULAR_WEIGHTS = {
-    'SiO2': 60.0843,
+    'SiO2': 60.0848,
     'TiO2': 79.8988,
-    'Al2O3': 101.9613,
+    'Al2O3': 101.96128,
+    'Cr2O3': 151.9902,
     'FeO': 71.8464,
-    'MnO': 70.9375,
+    'Fe2O3': 159.6922,
+    'MnO': 70.9374,
     'MgO': 40.3044,
+    'NiO': 74.7094,
+    'ZnO': 81.3794,
     'CaO': 56.0794,
-    'Na2O': 61.9789,
-    'K2O': 94.1960,
-    'P2O5': 141.9445
+    'Na2O': 61.97894,
+    'K2O': 94.1954,
+    'P2O5': 141.94452,
+    'V2O5': 181.8798
 }
 
 # Common rock classification fields

@@ -81,6 +81,37 @@ with tab1:
                 # Update session state
                 st.session_state.processed_data = df
                 st.success("✅ Basic calculations completed!")
+        
+        # Enhanced calculations option
+        st.write("---")
+        st.write("**Enhanced Calculations:**")
+        
+        # Missing error handling
+        missing_error = st.number_input("Relative error for missing uncertainties (%)", 
+                                       min_value=0.0, max_value=100.0, 
+                                       value=5.0, step=0.5) / 100.0
+        
+        if st.button("Calculate All Parameters (Enhanced)", type="secondary"):
+            with st.spinner("Calculating comprehensive geochemical parameters..."):
+                try:
+                    from utils.geochemical_functions import calc_all, calc_relative_error
+                    
+                    # First handle missing errors
+                    df = calc_relative_error(df, missing_error)
+                    
+                    # Then calculate all parameters
+                    df = calc_all(df, age=age_ma, missing_error=missing_error)
+                    
+                    # Finally reorder columns for better presentation
+                    df = data_processor.reorder_columns(df)
+                    
+                    # Update session state
+                    st.session_state.processed_data = df
+                    st.success("✅ Enhanced calculations completed!")
+                    
+                except Exception as e:
+                    st.error(f"Error in enhanced calculations: {str(e)}")
+                    st.info("Using standard calculations instead...")
     
     with col2:
         st.write("**Calculation Results Preview:**")

@@ -45,14 +45,17 @@ Preferred communication style: Simple, everyday language.
 - Interactive data preview
 
 ### 3. Data Processing Module (`pages/2_Data_Processing.py`)
-- Geochemical calculations and derived parameters
+- Enhanced geochemical calculations and derived parameters
 - Data cleaning and transformation
-- Isotope ratio calculations
+- Advanced isotope ratio calculations with age corrections
+- Comprehensive error propagation
 - Normalization procedures
+- Enhanced column reordering with intelligent suffix handling
 
 ### 4. Visualization Module (`pages/3_Visualizations.py`)
 - Interactive plotting with Plotly
 - Geochemical classification diagrams
+- Enhanced REE spider diagrams with proper formatting
 - Statistical visualizations
 - Custom plot generation
 
@@ -62,11 +65,13 @@ Preferred communication style: Simple, everyday language.
 - Cluster analysis
 - Statistical summaries
 
-### 6. Utility Classes
-- **DataProcessor**: File loading and validation
-- **GeochemicalCalculator**: Chemical calculations and ratios
-- **GeochemicalPlotter**: Visualization generation
-- **Constants**: Reference values for normalization
+### 6. Enhanced Utility Classes
+- **DataProcessor**: Enhanced file loading, validation, and intelligent merging
+- **GeochemicalCalculator**: Advanced chemical calculations and ratios
+- **GeochemicalPlotter**: Enhanced visualization generation
+- **Constants**: Comprehensive reference values with accurate isotope parameters
+- **GeochemicalFunctions**: Advanced calculation functions with safe assignment
+- **PlotFormatting**: Enhanced label formatting and styling utilities
 
 ## Data Flow
 
@@ -92,6 +97,34 @@ Preferred communication style: Simple, everyday language.
 
 ### File Processing
 - **openpyxl**: Excel file handling (via pandas)
+
+## Recent Enhancements (December 2024)
+
+### Enhanced Constants and References
+- Updated isotope decay constants with more accurate values (Begemann et al. 2001, Scherer et al. 2001)
+- Added CHUR values from Bouvier et al. 2008
+- Included depleted mantle values from Griffin et al. 2000
+- Added Hf-Nd mantle array parameters for ΔεHf calculations
+- Comprehensive molecular weight database for major elements
+
+### Advanced Calculation Functions
+- Safe assignment functionality to prevent column overwrites
+- Comprehensive isotope ratio calculations with age corrections
+- Enhanced error propagation for initial isotope ratios
+- Automatic relative error handling for missing uncertainties
+- Delta epsilon Hf calculations using proper mantle array corrections
+
+### Enhanced Data Processing
+- Intelligent column reordering with suffix handling (_err, _meta, _conflict, _calc)
+- Enhanced merge capabilities with conflict detection
+- Improved data validation and cleaning procedures
+- Better handling of metadata and duplicate resolution
+
+### Improved Visualization Features
+- Enhanced plot label formatting with LaTeX-style subscripts
+- Consistent color mapping for elements and lithologies
+- Better REE spider diagram formatting
+- Improved axis labels and scientific notation handling
 
 ## Deployment Strategy
 

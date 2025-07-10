@@ -108,12 +108,39 @@ class DataProcessor:
     def merge_datasets(self, main_df: pd.DataFrame, 
                       additional_dfs: List[pd.DataFrame],
                       merge_on: str = 'Sample') -> pd.DataFrame:
-        """Merge multiple datasets on common column"""
+        """Enhanced merge with conflict detection and metadata preservation"""
         merged_df = main_df.copy()
         
-        for df in additional_dfs:
+        for i, df in enumerate(additional_dfs):
             if merge_on in df.columns:
-                merged_df = pd.merge(merged_df, df, on=merge_on, how='left', suffixes=('', '_additional'))
+                # Clean merge keys
+                merged_df[merge_on] = merged_df[merge_on].astype(str).str.strip()
+                df[merge_on] = df[merge_on].astype(str).str.strip()
+                
+                # Merge with metadata suffix
+                suffix = f'_meta_{i}' if i > 0 else '_meta'
+                temp_merged = merged_df.merge(df, on=merge_on, how='left', suffixes=('', suffix))
+                
+                # Handle overlapping columns with conflict detection
+                original_cols = list(merged_df.columns)
+                all_cols = set(temp_merged.columns)
+                
+                for col in original_cols:
+                    suffixed_col = col + suffix
+                    if suffixed_col in all_cols:
+                        base = temp_merged[col]
+                        meta = temp_merged[suffixed_col]
+                        
+                        # Check for conflicts
+                        conflict_mask = (~base.isna()) & (~meta.isna()) & (base != meta)
+                        if conflict_mask.any():
+                            temp_merged[col + '_conflict'] = conflict_mask
+                        else:
+                            # Use combine_first to fill missing values
+                            temp_merged[col] = base.combine_first(meta)
+                            temp_merged.drop(columns=[suffixed_col], inplace=True)
+                
+                merged_df = temp_merged
         
         return merged_df
     
@@ -132,23 +159,32 @@ class DataProcessor:
         return df.groupby(group_cols).apply(priority_func).reset_index(drop=True)
     
     def reorder_columns(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Reorder columns for better presentation"""
-        # Define column order
-        first_cols = ['Sample', 'Lithology', 'Zone', 'Unit']
-        major_elements = ['SiO2', 'TiO2', 'Al2O3', 'FeO', 'MnO', 'MgO', 'CaO', 'Na2O', 'K2O', 'P2O5']
-        trace_elements = ['La', 'Ce', 'Pr', 'Nd', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu']
-        other_trace = ['Ba', 'Cr', 'Cs', 'Hf', 'Nb', 'Ni', 'Pb', 'Rb', 'Sc', 'Sr', 'Ta', 'Th', 'U', 'V', 'Y', 'Zr']
-        isotopes = ['87Sr/86Sr', '143Nd/144Nd', '176Hf/177Hf']
+        """Reorder columns for better presentation with improved logic"""
+        from utils.constants import META_ORDER, ME_ORDER, ME_RATIO_ORDER, TE_ORDER, ISO_ORDER
         
-        # Create ordered column list
+        base_order = META_ORDER + ME_ORDER + ME_RATIO_ORDER + TE_ORDER + ISO_ORDER
+        suffixes = ['_err', '_meta', '_conflict', '_calc', '_N', '_PM']
+        
+        df_cols_set = set(df.columns)
         ordered_cols = []
-        for col_group in [first_cols, major_elements, trace_elements, other_trace, isotopes]:
-            for col in col_group:
-                if col in df.columns:
-                    ordered_cols.append(col)
         
-        # Add remaining columns
-        remaining_cols = [col for col in df.columns if col not in ordered_cols]
+        # Add base columns and their variants
+        for col in base_order:
+            if col in df_cols_set:
+                ordered_cols.append(col)
+                # Add known suffixes immediately after base col
+                for suf in suffixes:
+                    suff_col = col + suf
+                    if suff_col in df_cols_set:
+                        ordered_cols.append(suff_col)
+                # Add any other suffix columns starting with '_'
+                other_suf_cols = [c for c in df_cols_set 
+                                if c.startswith(col + '_') and 
+                                all(not c.endswith(suf) for suf in suffixes)]
+                ordered_cols.extend(sorted(other_suf_cols))
+        
+        # Add remaining columns not already ordered
+        remaining_cols = [c for c in df.columns if c not in ordered_cols]
         ordered_cols.extend(remaining_cols)
         
         return df[ordered_cols]

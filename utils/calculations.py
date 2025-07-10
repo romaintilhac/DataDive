@@ -2,29 +2,36 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 from typing import Dict, List, Optional
-from utils.constants import CHONDRITE_VALUES, PRIMITIVE_MANTLE_VALUES
+from utils.constants import (
+    CHONDRITE_VALUES, PRIMITIVE_MANTLE_VALUES, MOLECULAR_WEIGHTS,
+    LAMBDA_147SM, LAMBDA_176LU, CHUR_143ND_144ND, CHUR_176HF_177HF,
+    CHUR_147SM_144ND, CHUR_176LU_177HF, HFND_ARRAY_A, HFND_ARRAY_B,
+    DM_143ND_144ND, DM_176HF_177HF, ABUNDANCE_147SM, ABUNDANCE_144ND,
+    ABUNDANCE_176LU, ABUNDANCE_177HF
+)
 
 class GeochemicalCalculator:
     """Class for geochemical calculations and derived parameters"""
     
     def __init__(self):
-        self.molecular_weights = {
-            'SiO2': 60.0843, 'TiO2': 79.8988, 'Al2O3': 101.9613,
-            'FeO': 71.8464, 'MnO': 70.9375, 'MgO': 40.3044,
-            'CaO': 56.0794, 'Na2O': 61.9789, 'K2O': 94.1960,
-            'P2O5': 141.9445
-        }
+        self.molecular_weights = MOLECULAR_WEIGHTS
         
         # Constants for isotope calculations
-        self.lambda_147Sm = 6.54e-12  # yr^-1
-        self.lambda_176Lu = 1.867e-11  # yr^-1
+        self.lambda_147Sm = LAMBDA_147SM
+        self.lambda_176Lu = LAMBDA_176LU
         self.age_Ma = 100  # Default age in Ma
         
         # Present-day values
-        self.CHUR_143Nd_144Nd = 0.512638
-        self.CHUR_176Hf_177Hf = 0.282785
-        self.DM_143Nd_144Nd = 0.51315
-        self.DM_176Hf_177Hf = 0.28325
+        self.CHUR_143Nd_144Nd = CHUR_143ND_144ND
+        self.CHUR_176Hf_177Hf = CHUR_176HF_177HF
+        self.CHUR_147Sm_144Nd = CHUR_147SM_144ND
+        self.CHUR_176Lu_177Hf = CHUR_176LU_177HF
+        self.DM_143Nd_144Nd = DM_143ND_144ND
+        self.DM_176Hf_177Hf = DM_176HF_177HF
+        
+        # Mantle array parameters
+        self.HfNd_array_a = HFND_ARRAY_A
+        self.HfNd_array_b = HFND_ARRAY_B
     
     def calculate_mg_number(self, df: pd.DataFrame) -> pd.Series:
         """Calculate Mg# = 100 * Mg/(Mg + Fe)"""
@@ -77,25 +84,19 @@ class GeochemicalCalculator:
     def calculate_delta_epsilon_hf(self, df: pd.DataFrame, 
                                   initial: bool = False, 
                                   age_ma: float = None) -> pd.Series:
-        """Calculate ΔεHf = εHf - εNd"""
+        """Calculate ΔεHf = εHf - (a*εNd + b) using mantle array"""
         epsilon_hf = self.calculate_epsilon_hf(df, initial, age_ma)
         epsilon_nd = self.calculate_epsilon_nd(df, initial, age_ma)
         
-        return epsilon_hf - epsilon_nd
+        # Use mantle array correction
+        mantle_array_hf = self.HfNd_array_a * epsilon_nd + self.HfNd_array_b
+        return epsilon_hf - mantle_array_hf
     
     def calculate_lu_hf_ratio(self, df: pd.DataFrame) -> pd.Series:
         """Calculate 176Lu/177Hf ratio"""
         if 'Lu' in df.columns and 'Hf' in df.columns:
-            # Atomic abundances
-            Lu_176_abundance = 0.02599
-            Hf_177_abundance = 0.18606
-            
-            # Atomic masses
-            Lu_176_mass = 175.942686
-            Hf_177_mass = 176.943220
-            
-            # Calculate ratio
-            lu_hf_ratio = (df['Lu'] / Lu_176_mass) * Lu_176_abundance / ((df['Hf'] / Hf_177_mass) * Hf_177_abundance)
+            # Use improved calculation with proper atomic masses
+            lu_hf_ratio = (df['Lu'] / df['Hf']) * (ABUNDANCE_176LU / ABUNDANCE_177HF)
             return lu_hf_ratio
         else:
             return pd.Series(np.nan, index=df.index)
@@ -103,16 +104,8 @@ class GeochemicalCalculator:
     def calculate_sm_nd_ratio(self, df: pd.DataFrame) -> pd.Series:
         """Calculate 147Sm/144Nd ratio"""
         if 'Sm' in df.columns and 'Nd' in df.columns:
-            # Atomic abundances
-            Sm_147_abundance = 0.1499
-            Nd_144_abundance = 0.2383
-            
-            # Atomic masses
-            Sm_147_mass = 146.914895
-            Nd_144_mass = 143.910083
-            
-            # Calculate ratio
-            sm_nd_ratio = (df['Sm'] / Sm_147_mass) * Sm_147_abundance / ((df['Nd'] / Nd_144_mass) * Nd_144_abundance)
+            # Use improved calculation with proper atomic abundances
+            sm_nd_ratio = (df['Sm'] / df['Nd']) * (ABUNDANCE_147SM / ABUNDANCE_144ND)
             return sm_nd_ratio
         else:
             return pd.Series(np.nan, index=df.index)
