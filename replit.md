@@ -129,31 +129,36 @@ Preferred communication style: Simple, everyday language.
 - Better REE spider diagram formatting
 - Improved axis labels and scientific notation handling
 
-### Pyrolite Integration (January 2025)
+### Multi-File Loading and Global Database Integration (January 2025)
 
-#### Enhanced Geochemical Analysis
-- Integrated pyrolite library for advanced geochemical analysis capabilities
-- Enhanced normalization using standard reference compositions (Chondrite_PON, PrimitiveMantle_PM, MORB_SM89, etc.)
-- Advanced REE spider plots with improved reference values
-- Enhanced TAS classification diagrams with proper field boundaries
+#### Multi-File Loading System
+- MultiFileLoader class for handling multiple geochemical data files
+- Sample-based catalogue logic for combining datasets
+- Automatic catalogue file detection based on metadata columns
+- Intelligent conflict resolution with multiple strategies (keep_first, keep_last, average)
+- Sample consistency validation across files
+- Detailed merge logging and overlap analysis
 
-#### Mineral Chemistry Analysis
-- Olivine chemistry calculations (Forsterite content)
-- Plagioclase feldspar composition (An-Ab-Or)
-- Pyroxene chemistry analysis capabilities
-- Automated mineral parameter calculations
+#### Global Database Comparison
+- GlobalDatabase class with reference datasets (MORB, OIB, Arc Basalts, Continental Crust)
+- Comprehensive comparison tools with similarity metrics
+- Range overlap analysis and statistical comparisons
+- Database search and filtering capabilities
+- Custom database integration support
 
-#### Advanced Visualization Features
-- Pyrolite-enhanced REE spider diagrams with multiple reference options
-- Enhanced TAS diagrams with proper classification fields
-- Advanced normalization options with multiple reference compositions
-- Improved error handling and data validation
+#### Enhanced Data Upload Interface
+- Three-mode upload system: Single File, Multi-File Combination, Global Database Comparison
+- Interactive file combination settings with catalogue file selection
+- Real-time validation and sample overlap analysis
+- Comprehensive merge summary and logging
+- Database preview and comparison interface
 
-#### Technical Enhancements
-- PyroliteAnalyzer class for seamless integration
-- Fallback to standard functions when pyrolite unavailable
-- Enhanced error handling and user feedback
-- Comprehensive reference composition database
+#### Technical Features
+- Robust error handling and user feedback
+- Automatic column reordering and conflict detection
+- Priority-based file merging with customizable resolution
+- Statistical comparison metrics and visualization
+- Memory-efficient data processing for large datasets
 
 ## Deployment Strategy
 
