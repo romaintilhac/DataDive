@@ -154,6 +154,9 @@ Preferred communication style: Simple, everyday language.
 - Integrated database comparison after file loading/combination
 - Element selection for targeted database comparisons
 - Best/worst match analysis with similarity scoring
+- Online database connectivity (GEOROC, PetDB, EarthChem)
+- Custom reference database upload functionality
+- Connectivity testing and error handling
 
 #### Technical Features
 - Robust error handling and user feedback
@@ -161,6 +164,9 @@ Preferred communication style: Simple, everyday language.
 - Priority-based file merging with customizable resolution
 - Statistical comparison metrics and visualization
 - Memory-efficient data processing for large datasets
+- Online database API integration with timeout handling
+- Custom reference database validation and loading
+- Multi-database search capabilities with unified parameters
 
 ## Deployment Strategy
 

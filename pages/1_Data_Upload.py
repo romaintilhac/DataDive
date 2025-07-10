@@ -235,6 +235,104 @@ elif upload_mode == "Multi-File Combination + Database Comparison":
                     if st.button(f"Preview {db_name}", key=f"preview_combo_{db_name}"):
                         preview_df = global_database.get_database(db_name).head()
                         st.dataframe(preview_df, use_container_width=True)
+            
+            # Add online database connectivity
+            st.subheader("🌐 Connect to Online Databases")
+            
+            # Test connectivity
+            if st.button("🔗 Test Online Database Connectivity", key="test_connectivity"):
+                with st.spinner("Testing connectivity..."):
+                    connectivity_results = global_database.test_online_connectivity()
+                    
+                    st.subheader("📡 Database Status")
+                    for db_name, result in connectivity_results.items():
+                        if result['status'] == 'simulated':
+                            st.info(f"🔧 {db_name}: {result['message']}")
+                            st.caption(result['note'])
+                        elif result['status'] == 'available':
+                            st.success(f"✅ {db_name}: Available")
+                        else:
+                            st.error(f"❌ {db_name}: Unavailable")
+            
+            # Online database search
+            with st.expander("🔍 Search Online Databases"):
+                col_a, col_b = st.columns(2)
+                
+                with col_a:
+                    online_rock_type = st.selectbox(
+                        "Rock Type:",
+                        ["MORB", "OIB", "Arc Basalt", "Continental Crust", "Komatiite", "Tholeiite"],
+                        key="online_rock_type"
+                    )
+                    
+                    online_setting = st.selectbox(
+                        "Tectonic Setting:",
+                        ["VOLCANIC ARC", "MID-OCEAN RIDGE", "OCEAN ISLAND", "CONTINENTAL RIFT", "BACK-ARC"],
+                        key="online_setting"
+                    )
+                
+                with col_b:
+                    online_limit = st.number_input(
+                        "Max samples:",
+                        min_value=10,
+                        max_value=1000,
+                        value=100,
+                        key="online_limit"
+                    )
+                    
+                    databases_to_search = st.multiselect(
+                        "Databases to search:",
+                        ["GEOROC", "PetDB", "EarthChem"],
+                        default=["GEOROC"],
+                        key="online_databases"
+                    )
+                
+                if st.button("🔍 Search Online Databases", key="search_online"):
+                    if databases_to_search:
+                        with st.spinner("Searching online databases..."):
+                            results = global_database.search_online_databases(
+                                rock_type=online_rock_type,
+                                setting=online_setting,
+                                limit=online_limit
+                            )
+                            
+                            # Display results
+                            for db_name, result in results.items():
+                                if db_name in databases_to_search:
+                                    if 'success' in result:
+                                        st.success(f"✅ {db_name}: {result['success']}")
+                                    elif 'error' in result:
+                                        st.error(f"❌ {db_name}: {result['error']}")
+                    else:
+                        st.error("Please select at least one database to search")
+            
+            # Custom database upload
+            st.subheader("📁 Upload Custom Reference Database")
+            
+            with st.expander("📤 Upload Reference Database"):
+                custom_db_name = st.text_input(
+                    "Database Name:",
+                    placeholder="e.g., My_Reference_Data",
+                    key="custom_db_name"
+                )
+                
+                custom_db_file = st.file_uploader(
+                    "Upload reference database:",
+                    type=['csv', 'xlsx', 'xls'],
+                    help="Upload a CSV or Excel file with reference geochemical data. Must contain a 'Sample' column.",
+                    key="custom_db_file"
+                )
+                
+                if st.button("📁 Load Custom Database", key="load_custom_db"):
+                    if custom_db_name and custom_db_file:
+                        result = global_database.load_from_file(custom_db_name, custom_db_file)
+                        
+                        if 'success' in result:
+                            st.success(f"✅ {result['success']}")
+                        else:
+                            st.error(f"❌ {result['error']}")
+                    else:
+                        st.error("Please provide both database name and file")
         
         with col2:
             st.write("**Your Current Data:**")
