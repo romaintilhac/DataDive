@@ -101,7 +101,7 @@ Preferred communication style: Simple, everyday language.
 ### Specialized Geochemical Libraries
 - **pyrolite**: Advanced geochemical analysis and normalization capabilities
 
-## Recent Enhancements (December 2024)
+## Recent Enhancements (January 2025)
 
 ### Enhanced Constants and References
 - Updated isotope decay constants with more accurate values (Begemann et al. 2001, Scherer et al. 2001)
@@ -147,11 +147,13 @@ Preferred communication style: Simple, everyday language.
 - Custom database integration support
 
 #### Enhanced Data Upload Interface
-- Three-mode upload system: Single File, Multi-File Combination, Global Database Comparison
+- Unified workflow: Single File Upload and Multi-File Combination + Database Comparison
 - Interactive file combination settings with catalogue file selection
 - Real-time validation and sample overlap analysis
 - Comprehensive merge summary and logging
-- Database preview and comparison interface
+- Integrated database comparison after file loading/combination
+- Element selection for targeted database comparisons
+- Best/worst match analysis with similarity scoring
 
 #### Technical Features
 - Robust error handling and user feedback

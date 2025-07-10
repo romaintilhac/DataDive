@@ -30,7 +30,7 @@ st.header("Data Loading Options")
 
 upload_mode = st.radio(
     "Choose data loading mode:",
-    ["Single File Upload", "Multi-File Combination", "Global Database Comparison"],
+    ["Single File Upload", "Multi-File Combination + Database Comparison"],
     horizontal=True
 )
 
@@ -53,9 +53,9 @@ if upload_mode == "Single File Upload":
                 st.session_state.main_data = df
                 st.success(f"✅ File loaded successfully! {len(df)} samples, {len(df.columns)} columns")
 
-elif upload_mode == "Multi-File Combination":
-    st.subheader("📁 Multi-File Combination")
-    st.info("Upload multiple files to combine them based on sample matching logic")
+elif upload_mode == "Multi-File Combination + Database Comparison":
+    st.subheader("📁 Multi-File Combination + Database Comparison")
+    st.info("Upload multiple files to combine them based on sample matching logic, then compare with global databases")
     
     uploaded_files = st.file_uploader(
         "Choose CSV or Excel files",
@@ -166,6 +166,7 @@ elif upload_mode == "Multi-File Combination":
                             st.session_state.multi_file_summary = multi_file_loader.get_merge_summary()
                             
                             st.success(f"✅ Files combined successfully! {len(combined_df)} samples, {len(combined_df.columns)} columns")
+                            st.info("📊 Combined data is now ready for database comparison below!")
                             
                         else:
                             st.error(f"Validation error: {validation_results['error']}")
@@ -207,99 +208,133 @@ elif upload_mode == "Multi-File Combination":
             df = list(files_dict.values())[0]
             st.session_state.main_data = df
             st.success("✅ Single file loaded successfully!")
-
-elif upload_mode == "Global Database Comparison":
-    st.subheader("🌍 Global Database Comparison")
     
-    col1, col2 = st.columns([1, 1])
-    
-    with col1:
-        st.write("**Available Reference Databases:**")
+    # Database Comparison Section (available after file loading/combination)
+    if st.session_state.main_data is not None:
+        st.header("🌍 Global Database Comparison")
+        st.info("Compare your loaded/combined data with global reference databases")
         
-        # List available databases
-        databases = global_database.list_databases()
+        current_data = st.session_state.main_data
         
-        for db_name in databases:
-            db_info = global_database.get_database_info(db_name)
-            with st.expander(f"📊 {db_name}"):
-                st.write(f"**Samples:** {db_info['samples']}")
-                st.write(f"**Elements:** {len(db_info['elements'])}")
-                st.write(f"**Lithologies:** {', '.join(db_info['lithologies'][:3])}..." if len(db_info['lithologies']) > 3 else f"**Lithologies:** {', '.join(db_info['lithologies'])}")
-                
-                # Show preview
-                if st.button(f"Preview {db_name}", key=f"preview_{db_name}"):
-                    preview_df = global_database.get_database(db_name).head()
-                    st.dataframe(preview_df, use_container_width=True)
-    
-    with col2:
-        st.write("**Upload Your Data for Comparison:**")
+        col1, col2 = st.columns([1, 1])
         
-        comparison_file = st.file_uploader(
-            "Choose your data file",
-            type=['csv', 'xlsx', 'xls'],
-            help="Upload your geochemical data to compare with global databases",
-            key="comparison_file"
-        )
-        
-        if comparison_file:
-            file_type = comparison_file.name.split('.')[-1].lower()
+        with col1:
+            st.write("**Available Reference Databases:**")
             
-            with st.spinner(f"Loading {comparison_file.name}..."):
-                df = data_processor.load_file(comparison_file, file_type)
+            # List available databases
+            databases = global_database.list_databases()
+            
+            for db_name in databases:
+                db_info = global_database.get_database_info(db_name)
+                with st.expander(f"📊 {db_name}"):
+                    st.write(f"**Samples:** {db_info['samples']}")
+                    st.write(f"**Elements:** {len(db_info['elements'])}")
+                    st.write(f"**Lithologies:** {', '.join(db_info['lithologies'][:3])}..." if len(db_info['lithologies']) > 3 else f"**Lithologies:** {', '.join(db_info['lithologies'])}")
+                    
+                    # Show preview
+                    if st.button(f"Preview {db_name}", key=f"preview_combo_{db_name}"):
+                        preview_df = global_database.get_database(db_name).head()
+                        st.dataframe(preview_df, use_container_width=True)
+        
+        with col2:
+            st.write("**Your Current Data:**")
+            st.write(f"📊 **Samples:** {len(current_data)}")
+            st.write(f"📊 **Columns:** {len(current_data.columns)}")
+            
+            # Database comparison
+            selected_database = st.selectbox(
+                "Select database for comparison:",
+                options=databases,
+                help="Choose which reference database to compare your data against",
+                key="combo_db_select"
+            )
+            
+            # Element selection for comparison
+            common_elements = []
+            if selected_database:
+                ref_db = global_database.get_database(selected_database)
+                if ref_db is not None:
+                    user_elements = set(current_data.columns)
+                    ref_elements = set(ref_db.columns)
+                    common_elements = list(user_elements.intersection(ref_elements))
+                    common_elements = [col for col in common_elements 
+                                     if col not in ['Sample', 'Lithology', 'Tectonic_Setting', 'Database']]
+            
+            if common_elements:
+                st.write(f"**Common Elements:** {len(common_elements)}")
+                selected_elements = st.multiselect(
+                    "Select elements to compare:",
+                    options=common_elements,
+                    default=common_elements[:10] if len(common_elements) > 10 else common_elements,
+                    help="Choose which elements to include in the comparison",
+                    key="combo_elements"
+                )
+            else:
+                st.warning("No common elements found with selected database")
+                selected_elements = []
+            
+            if st.button("🔍 Compare with Database", type="primary", key="combo_compare"):
+                if selected_elements:
+                    try:
+                        with st.spinner("Comparing with database..."):
+                            comparison_results = global_database.compare_with_database(
+                                current_data, selected_database, selected_elements
+                            )
+                            
+                            if 'error' not in comparison_results:
+                                st.session_state.comparison_results = comparison_results
+                                st.success("✅ Comparison completed!")
+                                
+                            else:
+                                st.error(comparison_results['error'])
+                                
+                    except Exception as e:
+                        st.error(f"Error during comparison: {str(e)}")
+                else:
+                    st.error("Please select at least one element for comparison")
+        
+        # Display comparison results if available
+        if 'comparison_results' in st.session_state:
+            comparison_results = st.session_state.comparison_results
+            
+            st.subheader("📊 Comparison Results")
+            
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Your Samples", comparison_results['user_samples'])
+            with col2:
+                st.metric("Reference Samples", comparison_results['reference_samples'])
+            with col3:
+                st.metric("Compared Elements", len(comparison_results['comparison_elements']))
+            
+            # Similarity metrics
+            similarity_data = []
+            for element, metrics in comparison_results['similarity_metrics'].items():
+                similarity_data.append({
+                    'Element': element,
+                    'Similarity Score': f"{metrics['similarity_score']:.1f}%",
+                    'Relative Difference': f"{metrics['relative_difference_percent']:.1f}%",
+                    'Range Overlap': f"{metrics['range_overlap_percent']:.1f}%"
+                })
+            
+            if similarity_data:
+                st.subheader("📈 Element Similarity Analysis")
+                similarity_df = pd.DataFrame(similarity_data)
+                st.dataframe(similarity_df, use_container_width=True)
                 
-                if df is not None:
-                    st.session_state.main_data = df
-                    st.success(f"✅ Data loaded for comparison!")
+                # Show best and worst matches
+                similarity_scores = [float(row['Similarity Score'].replace('%', '')) for row in similarity_data]
+                if similarity_scores:
+                    best_match_idx = similarity_scores.index(max(similarity_scores))
+                    worst_match_idx = similarity_scores.index(min(similarity_scores))
                     
-                    # Database comparison
-                    selected_database = st.selectbox(
-                        "Select database for comparison:",
-                        options=databases,
-                        help="Choose which reference database to compare your data against"
-                    )
-                    
-                    if st.button("🔍 Compare with Database", type="primary"):
-                        try:
-                            with st.spinner("Comparing with database..."):
-                                comparison_results = global_database.compare_with_database(
-                                    df, selected_database
-                                )
-                                
-                                if 'error' not in comparison_results:
-                                    st.session_state.comparison_results = comparison_results
-                                    st.success("✅ Comparison completed!")
-                                    
-                                    # Display comparison results
-                                    st.subheader("📊 Comparison Results")
-                                    
-                                    col1, col2, col3 = st.columns(3)
-                                    with col1:
-                                        st.metric("Your Samples", comparison_results['user_samples'])
-                                    with col2:
-                                        st.metric("Reference Samples", comparison_results['reference_samples'])
-                                    with col3:
-                                        st.metric("Compared Elements", len(comparison_results['comparison_elements']))
-                                    
-                                    # Similarity metrics
-                                    similarity_data = []
-                                    for element, metrics in comparison_results['similarity_metrics'].items():
-                                        similarity_data.append({
-                                            'Element': element,
-                                            'Similarity Score': f"{metrics['similarity_score']:.1f}%",
-                                            'Relative Difference': f"{metrics['relative_difference_percent']:.1f}%",
-                                            'Range Overlap': f"{metrics['range_overlap_percent']:.1f}%"
-                                        })
-                                    
-                                    if similarity_data:
-                                        st.subheader("📈 Element Similarity Analysis")
-                                        similarity_df = pd.DataFrame(similarity_data)
-                                        st.dataframe(similarity_df, use_container_width=True)
-                                
-                                else:
-                                    st.error(comparison_results['error'])
-                                    
-                        except Exception as e:
-                            st.error(f"Error during comparison: {str(e)}")
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.success(f"🎯 **Best Match:** {similarity_data[best_match_idx]['Element']} ({similarity_data[best_match_idx]['Similarity Score']})")
+                    with col2:
+                        st.warning(f"⚠️ **Most Different:** {similarity_data[worst_match_idx]['Element']} ({similarity_data[worst_match_idx]['Similarity Score']})")
+
+
 
 # Display combined data summary if available
 if 'multi_file_summary' in st.session_state:
