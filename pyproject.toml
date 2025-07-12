@@ -17,6 +17,7 @@ dependencies = [
     "scipy>=1.16.0",
     "seaborn>=0.13.2",
     "streamlit>=1.46.1",
+    "streamlit-extras>=0.3.3",      # 👈 Add this line
     "trafilatura>=2.0.0",
     "urllib3>=2.5.0",
     "xmltodict>=0.14.2",
