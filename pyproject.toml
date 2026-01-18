@@ -7,8 +7,8 @@ dependencies = [
     "beautifulsoup4>=4.13.4",
     "lxml>=5.4.0",
     "matplotlib>=3.10.3",
-    "numpy>=2.3.1",
-    "openpyxl>=3.1.5",       # .xlsx support
+    "numpy==1.26.4",
+    "openpyxl>=3.1.5", # .xlsx support
     "pandas>=2.3.1",
     "plotly>=6.2.0",
     "pyrolite>=0.3.5.post0",
@@ -19,6 +19,6 @@ dependencies = [
     "streamlit>=1.46.1",
     "trafilatura>=2.0.0",
     "urllib3>=2.5.0",
-    "xmltodict>=0.14.2",
-    "xlrd>=2.0.1"             # ✅ Add this line for .xls compatibility
+    "xmltodict>=0.14.2", # ✅ Add this line for .xls compatibility
+    "xlrd>=2.0.1",
 ]

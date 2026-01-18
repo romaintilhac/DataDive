@@ -119,8 +119,8 @@ class GeochemicalPlotter:
             y_values = []
             x_labels = []
             
-            for elem in available_ree:
-                if pd.notna(row[elem]) and elem in normalization_values:
+            for elem in ree_elements:
+                if elem in df.columns and pd.notna(row[elem]) and elem in normalization_values:
                     normalized_value = row[elem] / normalization_values[elem]
                     y_values.append(normalized_value)
                     x_labels.append(elem)
