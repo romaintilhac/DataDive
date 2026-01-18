@@ -7,7 +7,7 @@ from utils.visualizations import GeochemicalPlotter
 
 # Page configuration
 st.set_page_config(
-    page_title="Geochemical Data Analysis",
+    page_title="Data Dive",
     page_icon="🧪",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -26,7 +26,7 @@ if 'processed_data' not in st.session_state:
     st.session_state.processed_data = None
 
 # Main page
-st.title("🧪 Geochemical Data Analysis Platform")
+st.title("🧪 Geochemical Data Analysis and Visualization Platform")
 st.markdown("""
 This application provides comprehensive tools for geochemical data analysis including:
 - **Data Upload & Validation**: Load CSV/Excel files with automatic validation
