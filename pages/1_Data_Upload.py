@@ -540,7 +540,7 @@ if st.session_state.main_data is not None:
             'Type': str(main_df[col].dtype),
             'Non-null Count': main_df[col].count(),
             'Null Count': main_df[col].isna().sum(),
-            'Unique Values': str(main_df[col].nunique()) if main_df[col].dtype == 'object' else 'N/A'
+            'Unique Values': main_df[col].nunique() if main_df[col].dtype == 'object' else 0
         })
     
     col_info_df = pd.DataFrame(col_info)
@@ -552,16 +552,16 @@ if st.session_state.main_data is not None:
     col1, col2 = st.columns(2)
     
     with col1:
-        remove_duplicates = st.checkbox("Remove duplicate samples", value=True, key="remove_duplicates_clean")
-        fill_missing = st.checkbox("Fill missing values", value=True, key="fill_missing_clean")
+        remove_duplicates_opt = st.checkbox("Remove duplicate samples", value=True, key="clean_remove_duplicates")
+        fill_missing_opt = st.checkbox("Fill missing values", value=True, key="clean_fill_missing")
     
     with col2:
         if st.button("Clean Data", type="primary", key="clean_data_button"):
             with st.spinner("Cleaning data..."):
                 cleaned_df = data_processor.clean_data(
                     main_df,
-                    remove_duplicates=remove_duplicates,
-                    fill_missing=fill_missing
+                    remove_duplicates=remove_duplicates_opt,
+                    fill_missing=fill_missing_opt
                 )
                 
                 # Update session state

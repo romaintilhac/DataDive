@@ -21,4 +21,5 @@ dependencies = [
     "urllib3>=2.5.0",
     "xmltodict>=0.14.2", # ✅ Add this line for .xls compatibility
     "xlrd>=2.0.1",
+    "pyarrow>=20.0.0",
 ]
