@@ -1,0 +1,1 @@
+- [Python environment alignment](python-runtime-alignment.md) — keep uv package resolution pinned to Replit's configured Python module.
